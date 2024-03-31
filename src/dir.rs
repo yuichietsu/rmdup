@@ -1,13 +1,14 @@
 use std::fs;
-use std::io;
+use std::io::{self, BufReader, Read};
 use std::collections::HashMap;
+use crc32fast::Hasher;
 
 use crate::archiver;
 
 pub fn walk(
     dir     : &str,
     map_len : &mut HashMap<u64, Vec<String>>,
-    map_crc : &mut HashMap<String, String>,
+    map_crc : &mut HashMap<String, u32>,
 ) -> Result<(), io::Error> {
     let entries = fs::read_dir(dir)?;
     for entry in entries {
@@ -33,4 +34,34 @@ pub fn walk(
         }
     }
     Ok(())
+}
+
+pub fn crc(path : &str) -> Result<u32, io::Error> {
+    let mut crc: Option<u32> = None;
+    let parts: Vec<&str> = path.split("\t").collect();
+    if parts.len() == 1 {
+        let mut hasher = Hasher::new();
+        let file       = fs::File::open(path)?;
+        let mut reader = BufReader::new(file);
+        let mut buffer = [0; 4096];
+        loop {
+            match reader.read(&mut buffer)? {
+                0 => break,
+                n => {
+                    hasher.update(&buffer[..n]);
+                }
+            }
+        }
+        crc = Some(hasher.finalize());
+    } else {
+        let container = parts[0];
+        let path      = parts[1];
+        let lc_path   = container.to_lowercase();
+        if lc_path.ends_with(".cab") {
+            crc = Some(archiver::cabinet::crc(container, path)?);
+        } else if lc_path.ends_with(".zip") {
+            crc = Some(archiver::zip::crc(container, path)?);
+        }
+    }
+    Ok(crc.unwrap_or(0))
 }

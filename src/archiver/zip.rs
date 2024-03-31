@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub fn walk(
     file_name : &str,
     map_len   : &mut HashMap<u64, Vec<String>>,
-    _map_crc   : &mut HashMap<String, String>,
+    map_crc   : &mut HashMap<String, u32>,
 ) -> Result<(), io::Error> {
     let zip_file = fs::File::open(file_name)?;
     let reader   = io::BufReader::new(zip_file);
@@ -21,7 +21,17 @@ pub fn walk(
             } else {
                 map_len.insert(len, vec![name]);
             }
+            let name = format!("{}\t{}", file_name, file.name());
+            map_crc.insert(name, file.crc32()); 
         }
     }
     Ok(())
+}
+
+pub fn crc(container : &str, path : &str) -> Result<u32, io::Error> {
+    let zip_file = fs::File::open(container)?;
+    let reader   = io::BufReader::new(zip_file);
+    let mut archive  = zip::ZipArchive::new(reader).unwrap();
+    let file = archive.by_name(path).unwrap();
+    Ok(file.crc32())
 }

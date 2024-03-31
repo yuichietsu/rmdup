@@ -1,9 +1,10 @@
 use clap::{App, Arg};
 use std::collections::HashMap;
+use std::io;
 
 use rmdup::dir;
 
-fn main() {
+fn main() -> Result<(), io::Error> {
     let matches = App::new("remove duplicated files")
         .version("0.0.1")
         .version_message("show version")
@@ -18,10 +19,16 @@ fn main() {
         let _ = dir::walk(dir, &mut map_len, &mut map_crc);
         for (len, paths) in map_len {
             for path in paths.iter() {
-                println!("{} : {}", len, path);
+                if let Some(crc) = map_crc.get(path) {
+                    println!("{} : {} : {}", len, crc, path);
+                } else {
+                    let crc = dir::crc(path)?;
+                    println!("{} : {} : {}", len, crc, path);
+                }
             }
         }
     } else {
         println!("scan directory not secified.");
     }
+    Ok(())
 }
