@@ -1,4 +1,5 @@
 use std::fs;
+use std::error::Error;
 use std::io::{self, BufReader, Read};
 use std::collections::HashMap;
 use crc32fast::Hasher;
@@ -64,4 +65,21 @@ pub fn crc(path : &str) -> Result<u32, io::Error> {
         }
     }
     Ok(crc.unwrap_or(0))
+}
+
+pub fn remove(path : &str) -> Result<(), Box<dyn Error>>
+{
+    let parts: Vec<&str> = path.split("\t").collect();
+    if parts.len() == 1 {
+    } else {
+        let container = parts[0];
+        let path      = parts[1];
+        let lc_path   = container.to_lowercase();
+        if lc_path.ends_with(".cab") {
+            archiver::cabinet::remove(container, path)?;
+        } else if lc_path.ends_with(".zip") {
+            archiver::zip::remove(container, path)?;
+        }
+    }
+    Ok(())
 }

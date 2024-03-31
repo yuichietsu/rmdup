@@ -1,9 +1,12 @@
+use std::error::Error;
 use std::fs;
 use std::io::{self, Read};
 use std::collections::HashMap;
 use cab;
 use crc32fast::Hasher;
 use crate::archiver;
+use tempfile::tempdir;
+use fs_extra::dir::{copy, CopyOptions};
 
 pub fn walk(
     file_name : &str,
@@ -37,4 +40,30 @@ pub fn crc(container : &str, path : &str) -> Result<u32, io::Error> {
         }
     }
     Ok(hasher.finalize())
+}
+
+pub fn remove(container : &str, _path : &str) -> Result<(), Box<dyn Error>> {
+    let temp_dir = tempdir()?;
+    println!("Temporary directory path: {:?}", temp_dir.path());
+
+    let cabinet = cab::Cabinet::new(fs::File::open(container)?)?;
+    let mut c = cab::Cabinet::new(fs::File::open(container)?)?;
+    for folder in cabinet.folder_entries() {
+        for file in folder.file_entries() {
+            let mut r = c.read_file(file.name())?;
+            let t = temp_dir.path().to_str().unwrap();
+            let p = format!("{}/{}", t, file.name());
+            println!("Created {}", p);
+            let mut w = fs::File::create(p)?;
+            io::copy(&mut r, &mut w)?;
+        }
+    }
+
+    let options = CopyOptions::new();
+    let temp_dir_path = temp_dir.into_path();
+    copy(temp_dir_path, "/tmp/cab", &options).map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
+
+    println!("moved");
+
+    Ok(())
 }

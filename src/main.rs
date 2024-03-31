@@ -1,10 +1,10 @@
 use clap::{App, Arg};
 use std::collections::HashMap;
-use std::io;
+use std::error::Error;
 
 use rmdup::dir;
 
-fn main() -> Result<(), io::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     let matches = App::new("remove duplicated files")
         .version("0.0.1")
         .version_message("show version")
@@ -29,14 +29,38 @@ fn main() -> Result<(), io::Error> {
             }
             for (crc, dups) in map_dup {
                 if dups.len() > 1 {
-                    for path in dups.iter() {
-                        println!("{} : {} : {}", len, crc, path);
+                    let mut sorted = dups.clone();
+                    sorted.sort_by(|a, b| {
+                        let ap: Vec<&str> = a.split("\t").collect();
+                        let bp: Vec<&str> = b.split("\t").collect();
+                        let apl = ap.len();
+                        let bpl = bp.len();
+                        if apl == bpl {
+                            let ac = ap[0];
+                            let bc = bp[0];
+                            let acp = calc_ext_prior(ac);
+                            let bcp = calc_ext_prior(bc);
+                            if acp == bcp {
+                                ac.cmp(bc)
+                            } else {
+                                acp.cmp(&bcp)
+                            }
+                        } else {
+                            apl.cmp(&bpl)
+                        }
+                    });
+                    println!("[LEN={}, CRC={}]", len, crc);
+                    let path = sorted.pop().unwrap();
+                    println!("*** {}",path);
+                    for path in sorted.iter() {
+                        println!("--- {}", path);
+                        dir::remove(path)?;
                     }
                 }
             }
         }
     } else {
-        println!("scan directory not secified.");
+        println!("scan directory not specified.");
     }
     Ok(())
 }
@@ -47,5 +71,14 @@ fn push_key_values(map_dup: &mut HashMap<u32, Vec<String>>, crc: u32, path: &str
         dups.push(path.to_string());
     } else {
         map_dup.insert(crc, vec![path.to_string()]);
+    }
+}
+
+fn calc_ext_prior(path: &str) -> u8
+{
+    match path.to_lowercase() {
+        p if p.ends_with(".zip") => 8,
+        p if p.ends_with(".cab") => 6,
+        _ => 0,
     }
 }

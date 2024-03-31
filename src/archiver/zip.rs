@@ -1,4 +1,5 @@
 use zip;
+use std::error::Error;
 use std::fs;
 use std::io;
 use std::collections::HashMap;
@@ -11,7 +12,7 @@ pub fn walk(
 ) -> Result<(), io::Error> {
     let zip_file = fs::File::open(file_name)?;
     let reader   = io::BufReader::new(zip_file);
-    let mut archive  = zip::ZipArchive::new(reader).unwrap();
+    let mut archive  = zip::ZipArchive::new(reader)?;
     for i in 0..archive.len() {
         let file = archive.by_index(i).unwrap();
         if file.is_file() {
@@ -30,4 +31,9 @@ pub fn crc(container : &str, path : &str) -> Result<u32, io::Error> {
     let mut archive  = zip::ZipArchive::new(reader).unwrap();
     let file = archive.by_name(path).unwrap();
     Ok(file.crc32())
+}
+
+pub fn remove(container : &str, path : &str) -> Result<(), Box<dyn Error>> {
+    println!("zip : {} in {}", path, container);
+    Ok(())
 }
