@@ -2,6 +2,7 @@ use zip;
 use std::fs;
 use std::io;
 use std::collections::HashMap;
+use crate::archiver;
 
 pub fn walk(
     file_name : &str,
@@ -16,12 +17,7 @@ pub fn walk(
         if file.is_file() {
             let len  = file.size();
             let name = format!("{}\t{}", file_name, file.name());
-            if let Some(paths) = map_len.get_mut(&len) {
-                paths.push(name);
-            } else {
-                map_len.insert(len, vec![name]);
-            }
-            let name = format!("{}\t{}", file_name, file.name());
+            archiver::push_map_len(map_len, len, name.as_str());
             map_crc.insert(name, file.crc32()); 
         }
     }

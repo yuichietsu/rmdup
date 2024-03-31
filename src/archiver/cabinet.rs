@@ -3,6 +3,7 @@ use std::io::{self, Read};
 use std::collections::HashMap;
 use cab;
 use crc32fast::Hasher;
+use crate::archiver;
 
 pub fn walk(
     file_name : &str,
@@ -15,11 +16,7 @@ pub fn walk(
         for file in folder.file_entries() {
             let len  = file.uncompressed_size() as u64;
             let name = format!("{}\t{}", file_name, file.name());
-            if let Some(paths) = map_len.get_mut(&len) {
-                paths.push(name);
-            } else {
-                map_len.insert(len, vec![name]);
-            }
+            archiver::push_map_len(map_len, len, name.as_str());
         }
     }
     Ok(())
