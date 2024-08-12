@@ -24,6 +24,8 @@ pub fn walk(
                 let _ = archiver::cabinet::walk(path.as_str(), map_len, map_crc);
             } else if lc_path.ends_with(".zip") {
                 let _ = archiver::zip::walk(path.as_str(), map_len, map_crc);
+            } else if lc_path.ends_with(".lzh") {
+                let _ = archiver::lzh::walk(path.as_str(), map_len, map_crc);
             } else {
                 let len = metadata.len();
                 if let Some(paths) = map_len.get_mut(&len) {
@@ -62,6 +64,8 @@ pub fn crc(path : &str) -> Result<u32, io::Error> {
             crc = Some(archiver::cabinet::crc(container, path)?);
         } else if lc_path.ends_with(".zip") {
             crc = Some(archiver::zip::crc(container, path)?);
+        } else if lc_path.ends_with(".lzh") {
+            crc = Some(archiver::lzh::crc(container, path)?);
         }
     }
     Ok(crc.unwrap_or(0))
@@ -91,6 +95,8 @@ pub fn remove_in_archive(container: &str, files: Vec<String>) -> Result<(), Box<
         archiver::cabinet::remove(container, files)?;
     } else if lc_path.ends_with(".zip") {
         archiver::zip::remove(container, files)?;
+    } else if lc_path.ends_with(".lzh") {
+        archiver::lzh::remove(container, files)?;
     }
     Ok(())
 }
