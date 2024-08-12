@@ -42,7 +42,7 @@ pub fn crc(container : &str, path : &str) -> Result<u32, io::Error> {
     Ok(hasher.finalize())
 }
 
-pub fn remove(container : &str, _path : &str) -> Result<(), Box<dyn Error>> {
+pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error>> {
     let mut cab_builder = cab::CabinetBuilder::new();
     let new_folder = cab_builder.add_folder(cab::CompressionType::MsZip);
 
@@ -50,7 +50,9 @@ pub fn remove(container : &str, _path : &str) -> Result<(), Box<dyn Error>> {
     let cabinet  = cab::Cabinet::new(fs::File::open(container)?)?;
     for folder in cabinet.folder_entries() {
         for file in folder.file_entries() {
-            if file.name() != _path {
+            if files.contains(&file.name().to_string()) {
+                println!("  Removed {}", file.name());
+            } else {
                 is_empty = false;
                 new_folder.add_file(file.name());        
             }
@@ -62,7 +64,7 @@ pub fn remove(container : &str, _path : &str) -> Result<(), Box<dyn Error>> {
     let mut now_time = now.format("%H%M%S").to_string();
 
     if is_empty {
-        println!("{} : Removed", container);
+        println!("  Removed empty cabinet");
     } else {
         let mut tmp_file;
         loop {
@@ -82,8 +84,7 @@ pub fn remove(container : &str, _path : &str) -> Result<(), Box<dyn Error>> {
         }
         let cab_file = cab_writer.finish().unwrap();
         println!(
-            "{} : {} => {} B",
-            container,
+            "  {} => {} B",
             Path::new(container).metadata().unwrap().len(),
             cab_file.metadata().unwrap().len()
          );

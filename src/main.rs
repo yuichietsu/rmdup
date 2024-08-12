@@ -52,9 +52,24 @@ fn main() -> Result<(), Box<dyn Error>> {
                     println!("[LEN={}, CRC={}]", len, crc);
                     let path = sorted.pop().unwrap();
                     println!("*** {}",path);
+                    let mut rlist: HashMap<String, Vec<String>> = HashMap::new();
                     for path in sorted.iter() {
-                        println!("--- {}", path);
-                        dir::remove(path)?;
+                        let sp: Vec<&str> = path.split("\t").collect();
+                        if sp.len() == 1 {
+                            println!("!!! {}", path);
+                        } else {
+                            let c = sp[0];
+                            let f = sp[1];
+                            if let Some(container) = rlist.get_mut(c) {
+                                container.push(f.to_string());
+                            } else {
+                                rlist.insert(c.to_string(), vec![f.to_string()]);
+                            }
+                        }
+                    }
+                    for (container, files) in rlist {
+                        println!("--- {}", container);
+                        dir::remove_in_archive(&container, files)?;
                     }
                 }
             }

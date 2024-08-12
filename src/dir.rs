@@ -76,10 +76,21 @@ pub fn remove(path : &str) -> Result<(), Box<dyn Error>>
         let path      = parts[1];
         let lc_path   = container.to_lowercase();
         if lc_path.ends_with(".cab") {
-            archiver::cabinet::remove(container, path)?;
+            archiver::cabinet::remove(container, vec![path.to_string()])?;
         } else if lc_path.ends_with(".zip") {
-            archiver::zip::remove(container, path)?;
+            archiver::zip::remove(container, vec![path.to_string()])?;
         }
+    }
+    Ok(())
+}
+
+pub fn remove_in_archive(container: &str, files: Vec<String>) -> Result<(), Box<dyn Error>>
+{
+    let lc_path = container.to_lowercase();
+    if lc_path.ends_with(".cab") {
+        archiver::cabinet::remove(container, files)?;
+    } else if lc_path.ends_with(".zip") {
+        archiver::zip::remove(container, files)?;
     }
     Ok(())
 }

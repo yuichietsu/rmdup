@@ -33,7 +33,9 @@ pub fn crc(container : &str, path : &str) -> Result<u32, io::Error> {
     Ok(file.crc32())
 }
 
-pub fn remove(container : &str, path : &str) -> Result<(), Box<dyn Error>> {
-    println!("zip : {} in {}", path, container);
+pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error>> {
+    for file in files {
+        println!("zip : {} in {}", file, container);
+    }
     Ok(())
 }
