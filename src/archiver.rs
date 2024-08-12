@@ -32,11 +32,9 @@ pub fn backup_archive(path: &str, now_date: &str, now_time: &str) -> Result<(), 
 
 	let bk_path = bk_path.display().to_string();
 	fs::rename(path, &bk_path)?;
-    println!("{} => {}", path, bk_path);
 	let src = Path::new(&new_path);
 	if src.exists() {
 		fs::rename(&new_path, path)?;
-		println!("{} => {}", new_path, path);
 	}
 	Ok(())
 }

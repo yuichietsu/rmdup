@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use cab;
 use crc32fast::Hasher;
 use crate::archiver;
-use tempfile::tempdir;
 use chrono::prelude::*;
 use std::path::Path;
 
@@ -44,23 +43,15 @@ pub fn crc(container : &str, path : &str) -> Result<u32, io::Error> {
 }
 
 pub fn remove(container : &str, _path : &str) -> Result<(), Box<dyn Error>> {
-    let temp_dir = tempdir()?;
-    println!("Temporary directory path: {:?}", temp_dir.path());
-
     let mut cab_builder = cab::CabinetBuilder::new();
     let new_folder = cab_builder.add_folder(cab::CompressionType::MsZip);
 
     let mut is_empty = true;
     let cabinet  = cab::Cabinet::new(fs::File::open(container)?)?;
-    let t        = temp_dir.path().to_str().unwrap();
     for folder in cabinet.folder_entries() {
         for file in folder.file_entries() {
-            let p = format!("{}/{}", t, file.name());
-            if file.name() == _path {
-                println!("Skipped {}", p);
-            } else {
+            if file.name() != _path {
                 is_empty = false;
-                println!("Created {}", p);
                 new_folder.add_file(file.name());        
             }
         }
@@ -71,7 +62,7 @@ pub fn remove(container : &str, _path : &str) -> Result<(), Box<dyn Error>> {
     let mut now_time = now.format("%H%M%S").to_string();
 
     if is_empty {
-        println!("Cabinet will be empty: {}", container);
+        println!("{} : Removed", container);
     } else {
         let mut tmp_file;
         loop {
@@ -86,12 +77,16 @@ pub fn remove(container : &str, _path : &str) -> Result<(), Box<dyn Error>> {
         let mut cab_writer  = cab_builder.build(cab_file).unwrap();
         let mut cab_reader  = cab::Cabinet::new(fs::File::open(container)?)?;
         while let Some(mut writer) = cab_writer.next_file().unwrap() {
-            println!("read_file {}", writer.file_name());
             let mut r = cab_reader.read_file(writer.file_name())?;
             io::copy(&mut r, &mut writer).unwrap();
         }
         let cab_file = cab_writer.finish().unwrap();
-        println!("Cabinet size: {} B", cab_file.metadata().unwrap().len());
+        println!(
+            "{} : {} => {} B",
+            container,
+            Path::new(container).metadata().unwrap().len(),
+            cab_file.metadata().unwrap().len()
+         );
     }
 
     let _ = archiver::backup_archive(container, &now_date, &now_time);
