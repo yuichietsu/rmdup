@@ -25,9 +25,6 @@ pub fn walk(
             let name = format!("{}\t{}", file_name, filename);
             archiver::push_map_len(map_len, len, &name);
 		}
-		else {
-			eprintln!("skipping: has unsupported compression method");
-		}
 
         if !lha_reader.next_file()? {
             break;
