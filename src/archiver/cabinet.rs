@@ -6,7 +6,8 @@ use cab;
 use crc32fast::Hasher;
 use crate::archiver;
 use tempfile::tempdir;
-use fs_extra::dir::{copy, CopyOptions};
+use chrono::prelude::*;
+use std::path::Path;
 
 pub fn walk(
     file_name : &str,
@@ -46,24 +47,54 @@ pub fn remove(container : &str, _path : &str) -> Result<(), Box<dyn Error>> {
     let temp_dir = tempdir()?;
     println!("Temporary directory path: {:?}", temp_dir.path());
 
-    let cabinet = cab::Cabinet::new(fs::File::open(container)?)?;
-    let mut c = cab::Cabinet::new(fs::File::open(container)?)?;
+    let mut cab_builder = cab::CabinetBuilder::new();
+    let new_folder = cab_builder.add_folder(cab::CompressionType::MsZip);
+
+    let mut is_empty = true;
+    let cabinet  = cab::Cabinet::new(fs::File::open(container)?)?;
+    let t        = temp_dir.path().to_str().unwrap();
     for folder in cabinet.folder_entries() {
         for file in folder.file_entries() {
-            let mut r = c.read_file(file.name())?;
-            let t = temp_dir.path().to_str().unwrap();
             let p = format!("{}/{}", t, file.name());
-            println!("Created {}", p);
-            let mut w = fs::File::create(p)?;
-            io::copy(&mut r, &mut w)?;
+            if file.name() == _path {
+                println!("Skipped {}", p);
+            } else {
+                is_empty = false;
+                println!("Created {}", p);
+                new_folder.add_file(file.name());        
+            }
         }
     }
 
-    let options = CopyOptions::new();
-    let temp_dir_path = temp_dir.into_path();
-    copy(temp_dir_path, "/tmp/cab", &options).map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
+    let now = Local::now();
+    let now_date = now.format("%Y%m%d").to_string();
+    let mut now_time = now.format("%H%M%S").to_string();
 
-    println!("moved");
+    if is_empty {
+        println!("Cabinet will be empty: {}", container);
+    } else {
+        let mut tmp_file;
+        loop {
+            tmp_file = format!("{}.{}_{}", container, now_date, now_time); 
+            let tmp_path = Path::new(&tmp_file);
+            if !tmp_path.exists() {
+                break;
+            }
+            now_time.push_str("_");
+        }
+        let cab_file        = fs::File::create(tmp_file).unwrap();
+        let mut cab_writer  = cab_builder.build(cab_file).unwrap();
+        let mut cab_reader  = cab::Cabinet::new(fs::File::open(container)?)?;
+        while let Some(mut writer) = cab_writer.next_file().unwrap() {
+            println!("read_file {}", writer.file_name());
+            let mut r = cab_reader.read_file(writer.file_name())?;
+            io::copy(&mut r, &mut writer).unwrap();
+        }
+        let cab_file = cab_writer.finish().unwrap();
+        println!("Cabinet size: {} B", cab_file.metadata().unwrap().len());
+    }
+
+    let _ = archiver::backup_archive(container, &now_date, &now_time);
 
     Ok(())
 }
