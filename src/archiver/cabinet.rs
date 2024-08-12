@@ -75,7 +75,7 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
             }
             now_time.push_str("_");
         }
-        let cab_file        = fs::File::create(tmp_file).unwrap();
+        let cab_file        = fs::File::create(&tmp_file).unwrap();
         let mut cab_writer  = cab_builder.build(cab_file).unwrap();
         let mut cab_reader  = cab::Cabinet::new(fs::File::open(container)?)?;
         while let Some(mut writer) = cab_writer.next_file().unwrap() {

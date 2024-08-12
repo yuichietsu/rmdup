@@ -1,5 +1,6 @@
 use std::fs;
 use std::io;
+use std::env;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
@@ -17,7 +18,7 @@ pub fn push_map_len(map_len: &mut HashMap<u64, Vec<String>>, len: u64, name: &st
 
 pub fn backup_archive(path: &str, now_date: &str, now_time: &str) -> Result<(), io::Error>
 {
-    let bk_path = format!("/tmp/rmdup/{}{}", now_date, path);
+    let bk_path = format!("{}/rmdup/{}{}", env::temp_dir().display(), now_date, path);
 	let mut bk_path = PathBuf::from(bk_path);
 	let dst_file = format!("{}.{}", now_time, bk_path.file_name().unwrap().to_string_lossy());
 	bk_path.set_file_name(dst_file);
