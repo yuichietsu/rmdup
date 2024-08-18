@@ -26,6 +26,8 @@ pub fn walk(
                 let _ = archiver::zip::walk(path.as_str(), map_len, map_crc);
             } else if lc_path.ends_with(".lzh") {
                 let _ = archiver::lzh::walk(path.as_str(), map_len, map_crc);
+            } else if lc_path.ends_with(".rar") {
+                let _ = archiver::rar::walk(path.as_str(), map_len, map_crc);
             } else {
                 let len = metadata.len();
                 if let Some(paths) = map_len.get_mut(&len) {
@@ -97,6 +99,8 @@ pub fn remove_in_archive(container: &str, files: Vec<String>) -> Result<(), Box<
         archiver::zip::remove(container, files)?;
     } else if lc_path.ends_with(".lzh") {
         archiver::lzh::remove(container, files)?;
+    } else if lc_path.ends_with(".rar") {
+        archiver::rar::remove(container, files)?;
     }
     Ok(())
 }

@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 pub mod cabinet;
 pub mod zip;
 pub mod lzh;
+pub mod rar;
 
 pub fn push_map_len(map_len: &mut HashMap<u64, Vec<String>>, len: u64, name: &str)
 {
