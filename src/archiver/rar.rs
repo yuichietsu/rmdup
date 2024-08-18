@@ -14,8 +14,8 @@ pub fn walk(
     file_name : &str,
     map_len   : &mut HashMap<u64, Vec<String>>,
     map_crc   : &mut HashMap<String, u32>,
-) -> Result<(), io::Error> {
-    for entry in Archive::new(file_name).open_for_listing().unwrap() {
+) -> Result<(), Box<dyn Error>> {
+    for entry in Archive::new(file_name).open_for_listing()? {
         let e = entry.unwrap();
         if !e.is_directory() {
             let len  = e.unpacked_size;

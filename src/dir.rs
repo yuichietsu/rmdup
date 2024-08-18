@@ -27,7 +27,13 @@ pub fn walk(
             } else if lc_path.ends_with(".lzh") {
                 let _ = archiver::lzh::walk(path.as_str(), map_len, map_crc);
             } else if lc_path.ends_with(".rar") {
-                let _ = archiver::rar::walk(path.as_str(), map_len, map_crc);
+                match archiver::rar::walk(path.as_str(), map_len, map_crc) {
+                    Ok(()) => {
+                    },
+                    Err(e) => {
+                        eprintln!("SKIP : {} : {}", path, e);
+                    },
+                }
             } else {
                 let len = metadata.len();
                 if let Some(paths) = map_len.get_mut(&len) {
