@@ -57,6 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         let sp: Vec<&str> = path.split("\t").collect();
                         if sp.len() == 1 {
                             println!("!!! {}", path);
+                            dir::backup_file(path)?;
                         } else {
                             let c = sp[0];
                             let f = sp[1];

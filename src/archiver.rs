@@ -4,6 +4,7 @@ use std::env;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use chrono::prelude::Local;
+use cached::proc_macro::cached;
 
 pub mod cabinet;
 pub mod zip;
@@ -19,6 +20,7 @@ pub fn push_map_len(map_len: &mut HashMap<u64, Vec<String>>, len: u64, name: &st
     }
 }
 
+#[cached]
 pub fn now_str() -> String
 {
     let now = Local::now();

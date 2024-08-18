@@ -110,3 +110,10 @@ pub fn remove_in_archive(container: &str, files: Vec<String>) -> Result<(), Box<
     }
     Ok(())
 }
+
+pub fn backup_file(file: &str) -> Result<(), Box<dyn Error>>
+{
+    let now_str = archiver::now_str();
+    archiver::backup_archive(file, &now_str)?;
+    Ok(())
+}
