@@ -27,17 +27,9 @@ pub fn now_str() -> String
     now.format("%Y%m%d_%H%M%S").to_string()
 }
 
-pub fn resolve_tmp_path(path: &str, now: &str) -> String
+pub fn resolve_tmp_path(path: &str, now_str: &str) -> String
 {
-    let mut tmp = format!("{}.{}", path, now); 
-    loop {
-        let tmp_path = Path::new(&tmp);
-        if !tmp_path.exists() {
-            break;
-        }
-        tmp.push_str("_");
-    }
-    tmp
+    format!("{}.tmp.{}", path, now_str)
 }
 
 pub fn backup_archive(path: &str, now_str: &str) -> Result<(), io::Error>
@@ -49,7 +41,7 @@ pub fn backup_archive(path: &str, now_str: &str) -> Result<(), io::Error>
         }
     }
 
-    let tmp_path = format!("{}.{}", path, now_str);
+    let tmp_path = resolve_tmp_path(path, now_str);
 
 	fs::rename(path, &bak_path)?;
 	let src = Path::new(&tmp_path);
