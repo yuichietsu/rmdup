@@ -17,7 +17,9 @@ pub fn walk(
         let metadata = entry.metadata()?;
         let path     = entry.path().display().to_string();
         if metadata.is_dir() {
-            let _ = walk(path.as_str(), map_len, map_crc);
+            if !path.ends_with(".rmdup") {
+                walk(path.as_str(), map_len, map_crc)?;
+            }
         } else {
             let lc_path = path.to_lowercase();
             if lc_path.ends_with(".cab") {

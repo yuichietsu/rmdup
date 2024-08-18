@@ -34,7 +34,11 @@ pub fn resolve_tmp_path(path: &str, now_str: &str) -> String
 
 pub fn backup_archive(path: &str, now_str: &str) -> Result<(), io::Error>
 {
-    let bak_path = format!("{}/rmdup/{}{}", env::temp_dir().display(), now_str, path);
+    let home_dir = match env::var("RMDUP_HOME") {
+        Ok(val) => val.trim_end_matches('/').to_string(),
+        Err(_)  => env::temp_dir().to_str().unwrap_or("").to_string(),
+    };
+    let bak_path = format!("{}/.rmdup/{}{}", home_dir, now_str, path);
 	if let Some(parent) = PathBuf::from(&bak_path).parent() {
         if !parent.exists() {
             fs::create_dir_all(parent)?;
