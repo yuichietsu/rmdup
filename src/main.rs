@@ -14,6 +14,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut map_len = HashMap::new();
     let mut map_crc = HashMap::new();
+    let mut rlist: HashMap<String, Vec<String>> = HashMap::new();
 
     if let Some(dir) = matches.value_of("dir") {
         let _ = dir::walk(dir, &mut map_len, &mut map_crc);
@@ -52,7 +53,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                     println!("[LEN={}, CRC={}]", len, crc);
                     let path = sorted.pop().unwrap();
                     println!("*** {}",path);
-                    let mut rlist: HashMap<String, Vec<String>> = HashMap::new();
                     for path in sorted.iter() {
                         let sp: Vec<&str> = path.split("\t").collect();
                         if sp.len() == 1 {
@@ -65,14 +65,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                             } else {
                                 rlist.insert(c.to_string(), vec![f.to_string()]);
                             }
+                            println!("--- {}", path);
                         }
-                    }
-                    for (container, files) in rlist {
-                        println!("--- {}", container);
-                        dir::remove_in_archive(&container, files)?;
                     }
                 }
             }
+        }
+        for (container, files) in rlist {
+            println!("[ARC={}]", container);
+            dir::remove_in_archive(&container, files)?;
         }
     } else {
         println!("scan directory not specified.");
