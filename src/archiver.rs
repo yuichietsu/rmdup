@@ -1,10 +1,11 @@
 use std::fs;
-use std::io;
+use std::error::Error;
 use std::env;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use chrono::prelude::Local;
 use cached::proc_macro::cached;
+use regex;
 
 pub mod cabinet;
 pub mod zip;
@@ -32,13 +33,22 @@ pub fn resolve_tmp_path(path: &str, now_str: &str) -> String
     format!("{}.tmp.{}", path, now_str)
 }
 
-pub fn backup_archive(path: &str, now_str: &str) -> Result<(), io::Error>
+pub fn backup_archive(path: &str, now_str: &str) -> Result<(), Box<dyn Error>>
 {
     let home_dir = match env::var("RMDUP_HOME") {
         Ok(val) => val.trim_end_matches('/').to_string(),
         Err(_)  => env::temp_dir().to_str().unwrap_or("").to_string(),
     };
-    let bak_path = format!("{}/.rmdup/{}{}", home_dir, now_str, path);
+    let mut pt = String::new();
+    pt.push_str("^");
+    pt.push_str(&regex::escape(&home_dir));
+    let re = regex::Regex::new(&pt)?;
+    let bak_path = format!(
+        "{}/.rmdup/{}{}",
+        home_dir,
+        now_str,
+        re.replace(path, "")
+    );
 	if let Some(parent) = PathBuf::from(&bak_path).parent() {
         if !parent.exists() {
             fs::create_dir_all(parent)?;
