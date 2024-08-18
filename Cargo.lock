@@ -806,7 +806,6 @@ dependencies = [
  "fs_extra",
  "regex",
  "tempfile",
- "unrar",
  "zip",
 ]
 
@@ -1021,29 +1020,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e51733f11c9c4f72aa0c160008246859e340b00807569a0da0e7a1079b27ba85"
 
 [[package]]
-name = "unrar"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4994bfae776d5c2ee22493a00742c77d58bfa5adbe10febe83d1ba7aff2ebdc"
-dependencies = [
- "bitflags 1.3.2",
- "regex",
- "unrar_sys",
- "widestring",
-]
-
-[[package]]
-name = "unrar_sys"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f691c507016acf0a56fae074981ce30f13f8b035c8f80aa878f41905d96e390"
-dependencies = [
- "cc",
- "libc",
- "winapi",
-]
-
-[[package]]
 name = "vec_map"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1108,12 +1084,6 @@ name = "wasm-bindgen-shared"
 version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af190c94f2773fdb3729c55b007a722abb5384da03bc0986df4c289bf5567e96"
-
-[[package]]
-name = "widestring"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7219d36b6eac893fa81e84ebe06485e7dcbb616177469b142df14f1f4deb1311"
 
 [[package]]
 name = "winapi"
