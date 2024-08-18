@@ -6,7 +6,6 @@ use delharc;
 use crc32fast::Hasher;
 use tempfile::tempdir;
 use std::fs;
-use chrono::prelude::*;
 use std::path::Path;
 use std::process::Command;
 
@@ -87,22 +86,12 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
         }
     }
 
-	let now = Local::now();
-	let now_date = now.format("%Y%m%d").to_string();
-	let mut now_time = now.format("%H%M%S").to_string();
+    let now_str = archiver::now_str();
 
 	if is_empty {
         println!("  Removed empty lzh");
 	} else {
-		let mut tmp_file;
-		loop {
-			tmp_file = format!("{}.{}_{}", container, now_date, now_time); 
-			let tmp_path = Path::new(&tmp_file);
-			if !tmp_path.exists() {
-				break;
-			}
-			now_time.push_str("_");
-		}
+        let tmp_file = archiver::resolve_tmp_path(&container, &now_str);
 
 		let output = Command::new("jlha")
 			.current_dir(t)
@@ -123,6 +112,6 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
          );
 	}
 
-    let _ = archiver::backup_archive(container, &now_date, &now_time);
+    archiver::backup_archive(container, &now_str)?;
     Ok(())
 }

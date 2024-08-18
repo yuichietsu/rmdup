@@ -3,6 +3,7 @@ use std::io;
 use std::env;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use chrono::prelude::Local;
 
 pub mod cabinet;
 pub mod zip;
@@ -18,26 +19,40 @@ pub fn push_map_len(map_len: &mut HashMap<u64, Vec<String>>, len: u64, name: &st
     }
 }
 
-pub fn backup_archive(path: &str, now_date: &str, now_time: &str) -> Result<(), io::Error>
+pub fn now_str() -> String
 {
-    let bk_path = format!("{}/rmdup/{}{}", env::temp_dir().display(), now_date, path);
-	let mut bk_path = PathBuf::from(bk_path);
-	let dst_file = format!("{}.{}", now_time, bk_path.file_name().unwrap().to_string_lossy());
-	bk_path.set_file_name(dst_file);
+    let now = Local::now();
+    now.format("%Y%m%d_%H%M%S").to_string()
+}
 
-    let new_path = format!("{}.{}_{}", path, now_date, now_time);
-    
-	if let Some(parent) = bk_path.parent() {
+pub fn resolve_tmp_path(path: &str, now: &str) -> String
+{
+    let mut tmp = format!("{}.{}", path, now); 
+    loop {
+        let tmp_path = Path::new(&tmp);
+        if !tmp_path.exists() {
+            break;
+        }
+        tmp.push_str("_");
+    }
+    tmp
+}
+
+pub fn backup_archive(path: &str, now_str: &str) -> Result<(), io::Error>
+{
+    let bak_path = format!("{}/rmdup/{}{}", env::temp_dir().display(), now_str, path);
+	if let Some(parent) = PathBuf::from(&bak_path).parent() {
         if !parent.exists() {
             fs::create_dir_all(parent)?;
         }
     }
 
-	let bk_path = bk_path.display().to_string();
-	fs::rename(path, &bk_path)?;
-	let src = Path::new(&new_path);
+    let tmp_path = format!("{}.{}", path, now_str);
+
+	fs::rename(path, &bak_path)?;
+	let src = Path::new(&tmp_path);
 	if src.exists() {
-		fs::rename(&new_path, path)?;
+		fs::rename(&tmp_path, path)?;
 	}
 	Ok(())
 }

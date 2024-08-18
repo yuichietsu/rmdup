@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use crate::archiver;
 use tempfile::tempdir;
 use std::fs;
-use chrono::prelude::*;
 use std::path::Path;
 use std::process::Command;
 use unrar::Archive;
@@ -61,22 +60,12 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
         }
     }
 
-	let now = Local::now();
-	let now_date = now.format("%Y%m%d").to_string();
-	let mut now_time = now.format("%H%M%S").to_string();
+    let now_str = archiver::now_str();
 
 	if is_empty {
         println!("  Removed empty rar");
 	} else {
-		let mut tmp_file;
-		loop {
-			tmp_file = format!("{}.{}_{}", container, now_date, now_time); 
-			let tmp_path = Path::new(&tmp_file);
-			if !tmp_path.exists() {
-				break;
-			}
-			now_time.push_str("_");
-		}
+        let tmp_file = archiver::resolve_tmp_path(&container, &now_str);
 
 		let output = Command::new("rar")
 			.current_dir(t)
@@ -98,7 +87,7 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
          );
 	}
 
-    let _ = archiver::backup_archive(container, &now_date, &now_time);
+    archiver::backup_archive(container, &now_str)?;
 
     let re = Regex::new(r"^r\d{2}$").unwrap();
     let path = Path::new(container);
@@ -110,7 +99,7 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
             if stem == path.file_stem() {
                 if let Some(ext) = path.extension() {
                     if re.is_match(ext.to_str().unwrap()) {
-                        let _ = archiver::backup_archive(path.to_str().unwrap(), &now_date, &now_time);
+                        archiver::backup_archive(path.to_str().unwrap(), &now_str)?;
                     }
                 }
             }

@@ -9,7 +9,6 @@ use zip::write::FileOptions;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
-use chrono::prelude::*;
 
 pub fn walk(
     file_name : &str,
@@ -43,19 +42,8 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
     let zip_file = File::open(container)?;
     let mut zip_archive = ZipArchive::new(zip_file)?;
 
-    let now = Local::now();
-    let now_date = now.format("%Y%m%d").to_string();
-    let mut now_time = now.format("%H%M%S").to_string();
-
-	let mut tmp_file;
-	loop {
-		tmp_file = format!("{}.{}_{}", container, now_date, now_time); 
-		let tmp_path = Path::new(&tmp_file);
-		if !tmp_path.exists() {
-			break;
-		}
-		now_time.push_str("_");
-	}
+    let now_str  = archiver::now_str();
+    let tmp_file = archiver::resolve_tmp_path(&container, &now_str);
 
 	let mut is_empty = true;
     let output_file = File::create(&tmp_file)?;
@@ -90,6 +78,6 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
          );
 	}
 
-    let _ = archiver::backup_archive(container, &now_date, &now_time);
+    archiver::backup_archive(container, &now_str)?;
     Ok(())
 }

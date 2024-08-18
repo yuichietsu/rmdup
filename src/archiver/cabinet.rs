@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use cab;
 use crc32fast::Hasher;
 use crate::archiver;
-use chrono::prelude::*;
 use std::path::Path;
 
 pub fn walk(
@@ -59,25 +58,15 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
         }
     }
 
-    let now = Local::now();
-    let now_date = now.format("%Y%m%d").to_string();
-    let mut now_time = now.format("%H%M%S").to_string();
+    let now_str = archiver::now_str();
 
     if is_empty {
         println!("  Removed empty cabinet");
     } else {
-        let mut tmp_file;
-        loop {
-            tmp_file = format!("{}.{}_{}", container, now_date, now_time); 
-            let tmp_path = Path::new(&tmp_file);
-            if !tmp_path.exists() {
-                break;
-            }
-            now_time.push_str("_");
-        }
-        let cab_file        = fs::File::create(&tmp_file).unwrap();
-        let mut cab_writer  = cab_builder.build(cab_file).unwrap();
-        let mut cab_reader  = cab::Cabinet::new(fs::File::open(container)?)?;
+        let tmp_file       = archiver::resolve_tmp_path(&container, &now_str);
+        let cab_file       = fs::File::create(&tmp_file).unwrap();
+        let mut cab_writer = cab_builder.build(cab_file).unwrap();
+        let mut cab_reader = cab::Cabinet::new(fs::File::open(container)?)?;
         while let Some(mut writer) = cab_writer.next_file().unwrap() {
             let mut r = cab_reader.read_file(writer.file_name())?;
             io::copy(&mut r, &mut writer).unwrap();
@@ -90,7 +79,6 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
          );
     }
 
-    let _ = archiver::backup_archive(container, &now_date, &now_time);
-
+    archiver::backup_archive(container, &now_str)?;
     Ok(())
 }
