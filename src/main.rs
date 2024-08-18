@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     for path in sorted.iter() {
                         let sp: Vec<&str> = path.split("\t").collect();
                         if sp.len() == 1 {
-                            println!("!!! {}", path);
+                            println!("  Removed {}", path);
                             dir::backup_file(path)?;
                         } else {
                             let c = sp[0];
