@@ -49,7 +49,7 @@ pub fn walk(
     Ok(())
 }
 
-pub fn crc(path : &str) -> Result<u32, io::Error> {
+pub fn crc(path : &str) -> Result<u32, Box<dyn Error>> {
     let mut crc: Option<u32> = None;
     let parts: Vec<&str> = path.split("\t").collect();
     if parts.len() == 1 {
@@ -76,6 +76,8 @@ pub fn crc(path : &str) -> Result<u32, io::Error> {
             crc = Some(archiver::zip::crc(container, path)?);
         } else if lc_path.ends_with(".lzh") {
             crc = Some(archiver::lzh::crc(container, path)?);
+        } else if lc_path.ends_with(".rar") {
+            crc = Some(archiver::rar::crc(container, path)?);
         }
     }
     Ok(crc.unwrap_or(0))

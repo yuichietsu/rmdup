@@ -6,6 +6,8 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 use regex::Regex;
+use std::io::{BufReader, Read};
+use crc32fast::Hasher;
 
 pub fn read_rar<F>(file_name: &str, mut callback: F) -> Result<(), Box<dyn Error>>
 where F: FnMut(&str, bool, u64, u32)
@@ -49,10 +51,12 @@ pub fn walk(
     map_crc   : &mut HashMap<String, u32>,
 ) -> Result<(), Box<dyn Error>> {
     let check_file = |name: &str, is_file: bool, size: u64, crc: u32| {
-        if is_file && crc != 0 {
+        if is_file {
             let name = format!("{}\t{}", file_name, name);
             archiver::push_map_len(map_len, size, name.as_str());
-            map_crc.insert(name, crc); 
+            if crc != 0 {
+                map_crc.insert(name, crc); 
+            }
         }
     };
     read_rar(file_name, check_file)?;
@@ -61,9 +65,39 @@ pub fn walk(
 
 pub fn crc(container : &str, path : &str) -> Result<u32, Box<dyn Error>> {
     let mut file_crc = 0;
-    let check_file = |name: &str, is_file: bool, _size: u64, crc: u32| {
+    let check_file = |name: &str, is_file: bool, size: u64, crc: u32| {
         if is_file && name == path {
-            file_crc = crc;
+            if crc == 0 && size != 0 {
+                let temp_dir = tempdir().unwrap();
+                let t = temp_dir.path().to_str().unwrap();
+                Command::new("rar")
+                    .current_dir(t)
+                    .arg("e")
+                    .arg(container)
+                    .arg(name)
+                    .output()
+                    .expect("Failed to execute command");
+                let entries = fs::read_dir(t).unwrap();
+                for entry in entries {
+                    let entry    = entry.unwrap();
+                    let mut hasher = Hasher::new();
+                    let file       = fs::File::open(entry.path()).unwrap();
+                    let mut reader = BufReader::new(file);
+                    let mut buffer = [0; 4096];
+                    loop {
+                        match reader.read(&mut buffer).unwrap() {
+                            0 => break,
+                            n => {
+                                hasher.update(&buffer[..n]);
+                            }
+                        }
+                    }
+                    file_crc = hasher.finalize();
+                    break;
+                }
+            } else {
+                file_crc = crc;
+            }
         }
     };
     read_rar(container, check_file)?;
