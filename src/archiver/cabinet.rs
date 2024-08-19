@@ -1,9 +1,8 @@
 use std::error::Error;
 use std::fs;
-use std::io::{self, Read};
+use std::io;
 use std::collections::HashMap;
 use cab;
-use crc32fast::Hasher;
 use crate::archiver;
 use std::path::Path;
 
@@ -24,21 +23,11 @@ pub fn walk(
     Ok(())
 }
 
-pub fn crc(container : &str, path : &str) -> Result<u32, io::Error> {
-    let mut hasher = Hasher::new();
+pub fn crc(container : &str, path : &str) -> Result<u32, Box<dyn Error>> {
     let cab_file = fs::File::open(container)?;
     let mut cabinet = cab::Cabinet::new(cab_file)?;
     let mut reader = cabinet.read_file(path)?;
-    let mut buffer = [0; 4096];
-    loop {
-        match reader.read(&mut buffer)? {
-            0 => break,
-            n => {
-                hasher.update(&buffer[..n]);
-            }
-        }
-    }
-    Ok(hasher.finalize())
+    Ok(archiver::make_crc_from_reader(&mut reader)?)
 }
 
 pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error>> {

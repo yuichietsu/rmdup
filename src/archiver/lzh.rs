@@ -1,9 +1,8 @@
 use std::error::Error;
-use std::io::{self, Read};
+use std::io;
 use std::collections::HashMap;
 use crate::archiver;
 use delharc;
-use crc32fast::Hasher;
 use tempfile::tempdir;
 use std::fs;
 use std::path::Path;
@@ -32,23 +31,13 @@ pub fn walk(
     Ok(())
 }
 
-pub fn crc(container : &str, path : &str) -> Result<u32, io::Error> {
-    let mut hasher = Hasher::new();
+pub fn crc(container : &str, path : &str) -> Result<u32, Box<dyn Error>> {
     let mut lha_reader = delharc::parse_file(container)?;
     loop {
         let header = lha_reader.header();
         let filename = header.parse_pathname();
         if filename.ends_with(path) {
-            let mut buffer = [0; 4096];
-            loop {
-                match lha_reader.read(&mut buffer)? {
-                    0 => break,
-                    n => {
-                        hasher.update(&buffer[..n]);
-                    }
-                }
-            }
-            return Ok(hasher.finalize())
+            return Ok(archiver::make_crc_from_reader(&mut lha_reader)?);
         }
         if !lha_reader.next_file()? {
             break;

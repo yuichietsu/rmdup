@@ -1,8 +1,7 @@
 use std::fs;
 use std::error::Error;
-use std::io::{self, BufReader, Read};
+use std::io;
 use std::collections::HashMap;
-use crc32fast::Hasher;
 
 use crate::archiver;
 
@@ -50,37 +49,25 @@ pub fn walk(
 }
 
 pub fn crc(path : &str) -> Result<u32, Box<dyn Error>> {
-    let mut crc: Option<u32> = None;
+    let mut crc: u32 = 0;
     let parts: Vec<&str> = path.split("\t").collect();
     if parts.len() == 1 {
-        let mut hasher = Hasher::new();
-        let file       = fs::File::open(path)?;
-        let mut reader = BufReader::new(file);
-        let mut buffer = [0; 4096];
-        loop {
-            match reader.read(&mut buffer)? {
-                0 => break,
-                n => {
-                    hasher.update(&buffer[..n]);
-                }
-            }
-        }
-        crc = Some(hasher.finalize());
+        crc = archiver::make_crc_from_path(&path)?;
     } else {
         let container = parts[0];
         let path      = parts[1];
         let lc_path   = container.to_lowercase();
         if lc_path.ends_with(".cab") {
-            crc = Some(archiver::cabinet::crc(container, path)?);
+            crc = archiver::cabinet::crc(container, path)?;
         } else if lc_path.ends_with(".zip") {
-            crc = Some(archiver::zip::crc(container, path)?);
+            crc = archiver::zip::crc(container, path)?;
         } else if lc_path.ends_with(".lzh") {
-            crc = Some(archiver::lzh::crc(container, path)?);
+            crc = archiver::lzh::crc(container, path)?;
         } else if lc_path.ends_with(".rar") {
-            crc = Some(archiver::rar::crc(container, path)?);
+            crc = archiver::rar::crc(container, path)?;
         }
     }
-    Ok(crc.unwrap_or(0))
+    Ok(crc)
 }
 
 pub fn remove(path : &str) -> Result<(), Box<dyn Error>>

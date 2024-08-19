@@ -1,4 +1,5 @@
 use std::fs;
+use std::fs::File;
 use std::error::Error;
 use std::env;
 use std::collections::HashMap;
@@ -6,6 +7,8 @@ use std::path::{Path, PathBuf};
 use chrono::prelude::Local;
 use cached::proc_macro::cached;
 use regex;
+use std::io::{BufReader, Read};
+use crc32fast::Hasher;
 
 pub mod cabinet;
 pub mod zip;
@@ -63,4 +66,38 @@ pub fn backup_archive(path: &str, now_str: &str) -> Result<(), Box<dyn Error>>
 		fs::rename(&tmp_path, path)?;
 	}
 	Ok(())
+}
+
+pub fn make_crc_from_path(path: &str) -> Result<u32, Box<dyn Error>>
+{
+    let file       = fs::File::open(path)?;
+    let mut reader = BufReader::new(file);
+    make_crc_from_buf_reader(&mut reader)
+}
+
+pub fn make_crc_from_file(file: File) -> Result<u32, Box<dyn Error>>
+{
+    let mut reader = BufReader::new(file);
+    make_crc_from_buf_reader(&mut reader)
+}
+
+pub fn make_crc_from_reader(reader: &mut dyn Read) -> Result<u32, Box<dyn Error>>
+{
+    let mut buf_reader = BufReader::new(reader);
+    make_crc_from_buf_reader(&mut buf_reader)
+}
+
+pub fn make_crc_from_buf_reader<R: Read>(reader: &mut BufReader<R>) -> Result<u32, Box<dyn Error>>
+{
+    let mut hasher = Hasher::new();
+    let mut buffer = [0; 4096];
+    loop {
+        match reader.read(&mut buffer)? {
+            0 => break,
+            n => {
+                hasher.update(&buffer[..n]);
+            }
+        }
+    }
+    Ok(hasher.finalize())
 }
