@@ -19,21 +19,29 @@ pub fn walk(
                 walk(path.as_str(), map_len, map_crc)?;
             }
         } else {
+            let r;
             let lc_path = path.to_lowercase();
             if lc_path.ends_with(".cab") {
-                archiver::cabinet::walk(path.as_str(), map_len, map_crc)?;
+                r = archiver::cabinet::walk(path.as_str(), map_len, map_crc);
             } else if lc_path.ends_with(".zip") {
-                archiver::zip::walk(path.as_str(), map_len, map_crc)?;
+                r = archiver::zip::walk(path.as_str(), map_len, map_crc);
             } else if lc_path.ends_with(".lzh") {
-                archiver::lzh::walk(path.as_str(), map_len, map_crc)?;
+                r = archiver::lzh::walk(path.as_str(), map_len, map_crc);
             } else if lc_path.ends_with(".rar") {
-                archiver::rar::walk(path.as_str(), map_len, map_crc)?;
+                r = archiver::rar::walk(path.as_str(), map_len, map_crc);
             } else {
+                r = Ok(());
                 let len = metadata.len();
                 if let Some(paths) = map_len.get_mut(&len) {
                     paths.push(path);
                 } else {
                     map_len.insert(len, vec![path]);
+                }
+            }
+            match r {
+                Ok(_) => {},
+                Err(e) => {
+                    eprintln!("Skip {} : Error = {:?}", entry.path().display(), e);
                 }
             }
         }

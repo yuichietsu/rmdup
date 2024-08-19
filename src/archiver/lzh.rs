@@ -12,7 +12,7 @@ pub fn walk(
     file_name : &str,
     map_len   : &mut HashMap<u64, Vec<String>>,
     _map_crc   : &mut HashMap<String, u32>,
-) -> Result<(), io::Error> {
+) -> Result<(), Box<dyn Error>> {
     let mut lha_reader = delharc::parse_file(file_name)?;
     loop {
         let header = lha_reader.header();

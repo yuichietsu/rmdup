@@ -10,7 +10,7 @@ pub fn walk(
     file_name : &str,
     map_len   : &mut HashMap<u64, Vec<String>>,
     _map_crc   : &mut HashMap<String, u32>,
-) -> Result<(), io::Error> {
+) -> Result<(), Box<dyn Error>> {
     let cab_file = fs::File::open(file_name)?;
     let cabinet = cab::Cabinet::new(cab_file)?;
     for folder in cabinet.folder_entries() {

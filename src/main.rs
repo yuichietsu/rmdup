@@ -50,6 +50,7 @@ fn move_if_ext_included(
                         if let Some(p_ext_str) = p_ext.to_str() {
                             let lp_ext_str = p_ext_str.to_lowercase();
                             if lp_ext_str == move_ext {
+                                println!("[MOVE={}]", c);
                                 dir::backup_file(c)?;
                                 removed_containers.push(c);
                             }
