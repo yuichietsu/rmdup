@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if let Some(dir) = matches.value_of("dir") {
         env::set_var("RMDUP_HOME", dir);
-        let _ = dir::walk(dir, &mut map_len, &mut map_crc);
+        dir::walk(dir, &mut map_len, &mut map_crc)?;
         for (len, paths) in map_len {
             let mut map_dup: HashMap<u32, Vec<String>> = HashMap::new();
             for path in paths.iter() {
