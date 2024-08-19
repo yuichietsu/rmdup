@@ -6,8 +6,6 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 use regex::Regex;
-use std::io::{BufReader, Read};
-use crc32fast::Hasher;
 
 pub fn read_rar<F>(file_name: &str, mut callback: F) -> Result<(), Box<dyn Error>>
 where F: FnMut(&str, bool, u64, u32) -> Result<(), Box<dyn Error>>
@@ -35,7 +33,7 @@ where F: FnMut(&str, bool, u64, u32) -> Result<(), Box<dyn Error>>
         } else if line.starts_with("CRC32:") {
             crc = u32::from_str_radix(&line[7..], 16)?;
         } else if line == "" && name != "" {
-            callback(name, is_file, size, crc);
+            callback(name, is_file, size, crc)?;
             name = "";
             is_file = false;
             size = 0;
