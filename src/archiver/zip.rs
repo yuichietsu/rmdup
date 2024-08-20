@@ -55,6 +55,11 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
         let mut file = zip_archive.by_index(i)?;
         let file_name = normalize_file_name(&mut file);
 
+        if !file.is_file() {
+			println!("  Skipped {}", file_name);
+            continue;
+        }
+
         if files.contains(&file_name) {
 			println!("  Removed {}", file_name);
             continue;
