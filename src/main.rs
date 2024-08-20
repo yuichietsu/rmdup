@@ -69,6 +69,10 @@ fn remove_duplicated_files(
 ) -> Result<(), Box<dyn Error>> {
     let mut rlist: HashMap<String, Vec<String>> = HashMap::new();
     for (len, paths) in map_len {
+        if paths.len() <= 1 {
+            continue;
+        }
+        println!("[LEN={}, COUNT={}]", len, paths.len());
         let mut map_dup: HashMap<u32, Vec<String>> = HashMap::new();
         for path in paths.iter() {
             if let Some(crc) = map_crc.get(path) {
