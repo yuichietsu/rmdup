@@ -4,7 +4,6 @@ use std::error::Error;
 use std::env;
 use std::path::Path;
 use rayon::prelude::*;
-use std::sync::{Arc, Mutex};
 
 use rmdup::dir;
 
@@ -75,25 +74,27 @@ fn remove_duplicated_files(
             continue;
         }
         println!("[LEN={}, COUNT={}]", len, paths.len());
-        let map_dup: Arc<Mutex<HashMap<u32, Vec<String>>>> = Arc::new(Mutex::new(HashMap::new()));
 
-        paths.par_iter()
-             .for_each(|path| {
-                let crc_raw = map_crc.get(path);
-                let crc = match crc_raw {
+        let results: Vec<_> = paths.par_iter()
+            .map(|path| {
+                let crc = match map_crc.get(path) {
                     Some(value) => *value,
                     None        => dir::crc(path).unwrap(),
                 };
-                let mut map_dup = map_dup.lock().unwrap();
-                if let Some(dups) = map_dup.get_mut(&crc) {
-                    dups.push(path.to_string());
-                } else {
-                    map_dup.insert(crc, vec![path.to_string()]);
-                }
-             });
+                (path, crc)
+            })
+            .collect();
 
-        let map_dup = map_dup.lock().unwrap();
-        for (crc, dups) in map_dup.iter() {
+        let mut map_dup: HashMap<u32, Vec<String>> = HashMap::new();
+        for (path, crc) in results {
+            if let Some(dups) = map_dup.get_mut(&crc) {
+                dups.push(path.to_string());
+            } else {
+                map_dup.insert(crc, vec![path.to_string()]);
+            }
+        }
+
+        for (crc, dups) in map_dup {
             if dups.len() > 1 {
                 let mut sorted = dups.clone();
                 sorted.sort_by(|a, b| {
