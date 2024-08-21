@@ -93,7 +93,7 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
 
 		let output = Command::new("lha")
 			.current_dir(t)
-			.arg("ay")
+			.arg("ay1")
 			.arg(&tmp_file)
 			.args(&files)
 			.output()
