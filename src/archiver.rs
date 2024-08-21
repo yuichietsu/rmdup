@@ -109,8 +109,13 @@ pub fn to_utf8(bytes: &[u8]) -> String
 	match file_name_utf8 {
 		Ok(valid_str) => valid_str.to_string(),
 		Err(_) => {
-			let (decoded_str, _, _) = SHIFT_JIS.decode(bytes);
-			decoded_str.to_string()
+            from_sjis(bytes)
 		}
 	}
+}
+
+pub fn from_sjis(bytes: &[u8]) -> String
+{
+    let (decoded_str, _, _) = SHIFT_JIS.decode(bytes);
+    decoded_str.to_string()
 }
