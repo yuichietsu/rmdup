@@ -99,17 +99,21 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
 	let mut is_empty = true;
 
     let check_file = |name: &str, is_file: bool, _size: u64, _crc: u32| -> Result<(), Box<dyn Error>> {
-        if is_file && !files.contains(&name.to_string()) {
-            is_empty = false;
-            Command::new("rar")
-                .current_dir(t)
-                .arg("x")
-                .arg(container)
-                .arg(name)
-                .output()
-                .expect("Failed to execute command");
+        if is_file {
+            if !files.contains(&name.to_string()) {
+                is_empty = false;
+                Command::new("rar")
+                    .current_dir(t)
+                    .arg("x")
+                    .arg(container)
+                    .arg(name)
+                    .output()
+                    .expect("Failed to execute command");
+            } else {
+                println!("  Removed {}", name);
+            }
         } else {
-            println!("  Removed {}", name);
+            println!("  Skipped {}", name);
         }
         Ok(())
     };
