@@ -84,11 +84,18 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
 	} else {
         let tmp_file = archiver::resolve_tmp_path(&container, &now_str);
 
+        let files: Vec<String> = fs::read_dir(t)
+            .expect("Failed to read directory")
+            .filter_map(|entry| {
+                entry.ok().map(|e| e.path().file_name().unwrap().to_string_lossy().into_owned())
+            })
+            .collect();
+
 		let output = Command::new("jlha")
 			.current_dir(t)
-			.arg("a")
+			.arg("ay")
 			.arg(&tmp_file)
-			.arg(".")
+			.args(&files)
 			.output()
 			.expect("Failed to execute command");
 
