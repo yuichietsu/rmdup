@@ -108,9 +108,7 @@ pub fn to_utf8(bytes: &[u8]) -> String
 	let file_name_utf8 = std::str::from_utf8(bytes);
 	match file_name_utf8 {
 		Ok(valid_str) => valid_str.to_string(),
-		Err(_) => {
-            from_sjis(bytes)
-		}
+		Err(_)        => from_sjis(bytes),
 	}
 }
 

@@ -3,6 +3,7 @@ use std::io;
 use std::collections::HashMap;
 use crate::archiver;
 use delharc;
+use delharc::header::LhaHeader;
 use tempfile::tempdir;
 use std::fs;
 use std::path::Path;
@@ -16,7 +17,7 @@ pub fn walk(
     let mut lha_reader = delharc::parse_file(file_name)?;
     loop {
         let header = lha_reader.header();
-        let filename = archiver::to_utf8(&header.filename);
+        let filename = get_filename(header);
 
 		if lha_reader.is_decoder_supported() {
 			let len = header.original_size;
@@ -35,7 +36,7 @@ pub fn crc(container : &str, path : &str) -> Result<u32, Box<dyn Error>> {
     let mut lha_reader = delharc::parse_file(container)?;
     loop {
         let header = lha_reader.header();
-        let filename = archiver::to_utf8(&header.filename);
+        let filename = get_filename(header);
         if filename.ends_with(path) {
             return Ok(archiver::make_crc_from_reader(&mut lha_reader)?);
         }
@@ -44,6 +45,15 @@ pub fn crc(container : &str, path : &str) -> Result<u32, Box<dyn Error>> {
         }
     }
     Ok(0)
+}
+
+fn get_filename(header: &LhaHeader) -> String
+{
+    if header.level < 2 {
+        archiver::to_utf8(&header.filename)
+    } else {
+        header.parse_pathname_to_str()
+    }
 }
 
 pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error>> {
@@ -93,7 +103,7 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
 
 		let output = Command::new("lha")
 			.current_dir(t)
-			.arg("ay1")
+			.arg("ay")
 			.arg(&tmp_file)
 			.args(&files)
 			.output()
