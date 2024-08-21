@@ -16,7 +16,7 @@ pub fn walk(
     let mut lha_reader = delharc::parse_file(file_name)?;
     loop {
         let header = lha_reader.header();
-        let filename = header.parse_pathname().display().to_string();
+        let filename = archiver::to_utf8(&header.filename);
 
 		if lha_reader.is_decoder_supported() {
 			let len = header.original_size;
@@ -35,7 +35,7 @@ pub fn crc(container : &str, path : &str) -> Result<u32, Box<dyn Error>> {
     let mut lha_reader = delharc::parse_file(container)?;
     loop {
         let header = lha_reader.header();
-        let filename = header.parse_pathname();
+        let filename = archiver::to_utf8(&header.filename);
         if filename.ends_with(path) {
             return Ok(archiver::make_crc_from_reader(&mut lha_reader)?);
         }
@@ -53,10 +53,10 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
 	let mut is_empty = true;
     loop {
         let header = lha_reader.header();
-        let filename = header.parse_pathname().display().to_string();
+        let filename = archiver::to_utf8(&header.filename);
 		let p = format!("{}/{}", t, filename);
         if files.contains(&filename) {
-			println!("  Removed {}", p);
+			println!("  Removed {}", filename);
 		} else {
 			if lha_reader.is_decoder_supported() {
 				let path = Path::new(&p);
@@ -68,7 +68,9 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
 				let mut w = fs::File::create(&p)?;
 				io::copy(&mut lha_reader, &mut w)?;
 				is_empty = false;
-			}
+			} else {
+                println!("  Skipped {}", filename);
+            }
         }
         if !lha_reader.next_file()? {
             break;
