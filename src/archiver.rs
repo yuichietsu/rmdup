@@ -91,7 +91,7 @@ pub fn make_crc_from_reader(reader: &mut dyn Read) -> Result<u32, Box<dyn Error>
 pub fn make_crc_from_buf_reader<R: Read>(reader: &mut BufReader<R>) -> Result<u32, Box<dyn Error>>
 {
     let mut hasher = Hasher::new();
-    let mut buffer = [0; 4096];
+    let mut buffer = [0; 65536];
     loop {
         match reader.read(&mut buffer)? {
             0 => break,
