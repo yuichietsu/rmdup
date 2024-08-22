@@ -52,7 +52,7 @@ pub fn walk(
         if is_file {
             let name = format!("{}\t{}", file_name, name);
             archiver::push_map_len(map_len, size, name.as_str());
-            if crc != 0 {
+            if crc != 0 || size == 0 {
                 map_crc.insert(name, crc); 
             }
         }

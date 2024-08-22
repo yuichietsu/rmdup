@@ -63,7 +63,7 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
 	let mut is_empty = true;
     loop {
         let header = lha_reader.header();
-        let filename = archiver::to_utf8(&header.filename);
+        let filename = get_filename(header);
 		let p = format!("{}/{}", t, filename);
         if files.contains(&filename) {
 			println!("  Removed {}", filename);
