@@ -76,6 +76,9 @@ fn cabinet() {
     assert_eq!(4, map_len.get(&3).unwrap().len());
     assert_eq!(3, map_len.get(&6).unwrap().len());
     assert_eq!(0, map_crc.len());
+
+    let expected = format!("{}\tfirst.txt", file); 
+    assert!(map_len.get(&3).unwrap().contains(&expected));
 }
 
 #[test]
@@ -124,6 +127,9 @@ fn lzh() {
     assert_eq!(4, map_len.get(&3).unwrap().len());
     assert_eq!(3, map_len.get(&6).unwrap().len());
     assert_eq!(0, map_crc.len());
+
+    let expected = format!("{}\tfirst.txt", file); 
+    assert!(map_len.get(&3).unwrap().contains(&expected));
 }
 
 #[test]
@@ -177,6 +183,9 @@ fn zip() {
     assert_eq!(4, map_len.get(&3).unwrap().len());
     assert_eq!(3, map_len.get(&6).unwrap().len());
     assert_eq!(11, map_crc.len());
+
+    let expected = format!("{}\tfirst.txt", file); 
+    assert!(map_len.get(&3).unwrap().contains(&expected));
 }
 
 #[test]
@@ -230,4 +239,7 @@ fn rar() {
     assert_eq!(4, map_len.get(&3).unwrap().len());
     assert_eq!(3, map_len.get(&6).unwrap().len());
     assert_eq!(11, map_crc.len());
+
+    let expected = format!("{}\tfirst.txt", file); 
+    assert!(map_len.get(&3).unwrap().contains(&expected));
 }
