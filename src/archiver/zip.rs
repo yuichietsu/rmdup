@@ -5,7 +5,7 @@ use std::io;
 use std::collections::HashMap;
 use crate::archiver;
 use zip::read::ZipArchive;
-use zip::write::FileOptions;
+use zip::write::SimpleFileOptions;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -66,7 +66,8 @@ pub fn remove(container : &str, files : Vec<String>) -> Result<(), Box<dyn Error
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer)?;
 
-        zip_writer.start_file(file_name, FileOptions::default())?;
+        let options = SimpleFileOptions::default().compression_level(Some(9));
+        zip_writer.start_file(file_name, options)?;
         zip_writer.write_all(&buffer)?;
 
 		is_empty = false;
