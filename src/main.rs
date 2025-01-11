@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut map_crc = HashMap::new();
 
     if let Some(dir) = matches.value_of("dir") {
-        env::set_var("RMDUP_HOME", dir);
+        env::set_var("RMDUP_SCAN_DIR", dir);
         dir::walk(dir, &mut map_len, &mut map_crc)?;
 
         let move_ext = matches.value_of("move").unwrap_or("");

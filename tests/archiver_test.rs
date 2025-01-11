@@ -35,7 +35,7 @@ fn cabinet() {
     let arc_file = test_file("test.cab");
     let temp_dir = tempdir().unwrap();
 	let dir = temp_dir.path().to_str().unwrap().to_string();
-    env::set_var("RMDUP_HOME", &dir);
+    env::set_var("RMDUP_SCAN_DIR", &dir);
     
     let mut file = PathBuf::from(dir);
     file.push(Path::new(&arc_file).file_name().unwrap());
@@ -86,7 +86,7 @@ fn lzh() {
     let arc_file = test_file("test.lzh");
     let temp_dir = tempdir().unwrap();
 	let dir = temp_dir.path().to_str().unwrap().to_string();
-    env::set_var("RMDUP_HOME", &dir);
+    env::set_var("RMDUP_SCAN_DIR", &dir);
     
     let mut file = PathBuf::from(dir);
     file.push(Path::new(&arc_file).file_name().unwrap());
@@ -137,7 +137,7 @@ fn zip() {
     let arc_file = test_file("test.zip");
     let temp_dir = tempdir().unwrap();
 	let dir = temp_dir.path().to_str().unwrap().to_string();
-    env::set_var("RMDUP_HOME", &dir);
+    env::set_var("RMDUP_SCAN_DIR", &dir);
     
     let mut file = PathBuf::from(dir);
     file.push(Path::new(&arc_file).file_name().unwrap());
@@ -193,7 +193,7 @@ fn rar() {
     let arc_file = test_file("test.rar");
     let temp_dir = tempdir().unwrap();
 	let dir = temp_dir.path().to_str().unwrap().to_string();
-    env::set_var("RMDUP_HOME", &dir);
+    env::set_var("RMDUP_SCAN_DIR", &dir);
     
     let mut file = PathBuf::from(dir);
     file.push(Path::new(&arc_file).file_name().unwrap());
